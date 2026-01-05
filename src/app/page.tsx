@@ -18,6 +18,11 @@ import {
   Tooltip,
   Snackbar,
   Alert,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -26,6 +31,7 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import GitHubIcon from "@mui/icons-material/GitHub";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
 import { useThemeMode } from "@/components/ThemeContext";
 import reasonsData from "../../reason.json";
 
@@ -36,6 +42,8 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<Category | "All">(
     "All"
   );
+  const [randomCategory, setRandomCategory] = useState<Category | "All">("All");
+  const [randomReason, setRandomReason] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const { mode, toggleTheme } = useThemeMode();
 
@@ -68,6 +76,33 @@ export default function Home() {
       setSnackbarOpen(true);
     } catch (err) {
       console.error("Failed to copy text:", err);
+    }
+  };
+
+  const getRandomReason = () => {
+    let reasons: string[] = [];
+
+    if (randomCategory === "All") {
+      categories.forEach((category) => {
+        reasons.push(...reasonsData.categories[category].reasons);
+      });
+    } else {
+      reasons = reasonsData.categories[randomCategory].reasons;
+    }
+
+    if (reasons.length > 0) {
+      const randomIndex = Math.floor(Math.random() * reasons.length);
+      const selectedReason = reasons[randomIndex];
+      setRandomReason(selectedReason);
+      setSearchQuery("");
+      setSelectedCategory(randomCategory);
+      
+      setTimeout(() => {
+        const element = document.getElementById(`reason-${selectedReason}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
     }
   };
 
@@ -132,34 +167,85 @@ export default function Home() {
           Find the perfect way to decline with style, humor, or honesty
         </Typography>
 
-        <TextField
-          fullWidth
-          placeholder="Search for a reason to say no..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={{ xs: 2, sm: 2 }}
           sx={{
             mb: { xs: 2, sm: 3 },
-            maxWidth: { xs: "100%", sm: 600 },
+            maxWidth: { xs: "100%", sm: 800 },
             mx: "auto",
-            "& .MuiOutlinedInput-root": {
-              borderRadius: { xs: 2, sm: 3 },
-            },
+            alignItems: { xs: "stretch", sm: "flex-end" },
           }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon color="action" />
-              </InputAdornment>
-            ),
-            endAdornment: searchQuery && (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setSearchQuery("")} size="small">
-                  <ClearIcon />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+        >
+          <TextField
+            fullWidth
+            placeholder="Search for a reason to say no..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: { xs: 2, sm: 3 },
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setSearchQuery("")} size="small">
+                    <ClearIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 280 } }}
+          >
+            <FormControl
+              size="small"
+              sx={{
+                minWidth: { xs: "100%", sm: 150 },
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: { xs: 2, sm: 3 },
+                },
+              }}
+            >
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={randomCategory}
+                label="Category"
+                onChange={(e) =>
+                  setRandomCategory(e.target.value as Category | "All")
+                }
+              >
+                <MenuItem value="All">All</MenuItem>
+                {categories.map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Button
+              variant="contained"
+              startIcon={<ShuffleIcon />}
+              onClick={getRandomReason}
+              sx={{
+                borderRadius: { xs: 2, sm: 3 },
+                px: { xs: 2, sm: 3 },
+                whiteSpace: "nowrap",
+              }}
+            >
+              Random
+            </Button>
+          </Stack>
+        </Stack>
 
         <Box sx={{ mb: { xs: 3, sm: 4 } }}>
           <Typography
@@ -231,12 +317,18 @@ export default function Home() {
           {filteredReasons.map((reason) => (
             <Grid item xs={12} sm={6} md={4} key={reason}>
               <Card
+                id={`reason-${reason}`}
                 sx={{
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  transition: "transform 0.2s, box-shadow 0.2s",
+                  transition: "transform 0.2s, box-shadow 0.2s, background-color 0.3s",
                   cursor: "pointer",
+                  border: randomReason === reason ? 2 : 0,
+                  borderColor: randomReason === reason ? "primary.main" : "transparent",
+                  backgroundColor: randomReason === reason 
+                    ? (mode === "light" ? "rgba(25, 118, 210, 0.08)" : "rgba(144, 202, 249, 0.16)")
+                    : "background.paper",
                   "&:hover": {
                     transform: { xs: "none", sm: "translateY(-4px)" },
                     boxShadow: { xs: 2, sm: 4 },
@@ -245,7 +337,10 @@ export default function Home() {
                     transform: { xs: "scale(0.98)", sm: "translateY(-4px)" },
                   },
                 }}
-                onClick={() => copyToClipboard(reason)}
+                onClick={() => {
+                  copyToClipboard(reason);
+                  setRandomReason(null);
+                }}
               >
                 <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2 } }}>
                   <Typography
