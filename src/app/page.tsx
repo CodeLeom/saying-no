@@ -1,41 +1,419 @@
-import { Container, Typography, Button, Box, Paper } from "@mui/material";
+"use client";
+
+import { useState, useMemo } from "react";
+import {
+  Container,
+  Typography,
+  TextField,
+  Box,
+  Paper,
+  Chip,
+  Stack,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import { useThemeMode } from "@/components/ThemeContext";
+import reasonsData from "../../reason.json";
+
+type Category = keyof typeof reasonsData.categories;
 
 export default function Home() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category | "All">("All");
+  const [copiedReason, setCopiedReason] = useState<string | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const { mode, toggleTheme } = useThemeMode();
+
+  // Get all categories
+  const categories = Object.keys(reasonsData.categories) as Category[];
+
+  // Filter reasons based on search and category
+  const filteredReasons = useMemo(() => {
+    let reasons: string[] = [];
+
+    // Get reasons from selected category or all categories
+    if (selectedCategory === "All") {
+      categories.forEach((category) => {
+        reasons.push(...reasonsData.categories[category].reasons);
+      });
+    } else {
+      reasons = reasonsData.categories[selectedCategory].reasons;
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      reasons = reasons.filter((reason) =>
+        reason.toLowerCase().includes(query)
+      );
+    }
+
+    return reasons;
+  }, [searchQuery, selectedCategory, categories]);
+
+  const handleCategoryClick = (category: Category | "All") => {
+    setSelectedCategory(category);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedReason(text);
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+    setCopiedReason(null);
+  };
+
   return (
-    <Container maxWidth="lg">
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          gap: 3,
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            textAlign: "center",
-            maxWidth: 600,
+    <Container 
+      maxWidth="lg" 
+      sx={{ 
+        py: { xs: 2, sm: 3, md: 4 },
+        px: { xs: 2, sm: 3, md: 4 },
+      }}
+    >
+      {/* Theme Toggle Button */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: { xs: 1, sm: 2 } }}>
+        <Tooltip title={`Switch to ${mode === "light" ? "dark" : "light"} mode`}>
+          <IconButton
+            onClick={toggleTheme}
+            color="primary"
+            size="small"
+            sx={{
+              border: 1,
+              borderColor: "divider",
+            }}
+          >
+            {mode === "light" ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      <Box sx={{ textAlign: "center", mb: { xs: 3, sm: 4 } }}>
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{ 
+            fontWeight: 700, 
+            mb: { xs: 1, sm: 2 },
+            fontSize: { xs: "1.75rem", sm: "2.5rem", md: "3rem" },
           }}
         >
-          <Typography variant="h3" component="h1" gutterBottom>
-            Welcome to Next.js
+          1000 Ways to Say No
+        </Typography>
+        <Typography 
+          variant="body1" 
+          color="text.secondary" 
+          sx={{ 
+            mb: { xs: 3, sm: 4 },
+            fontSize: { xs: "0.875rem", sm: "1rem" },
+            px: { xs: 1, sm: 0 },
+          }}
+        >
+          Find the perfect way to decline with style, humor, or honesty
+        </Typography>
+
+        {/* Search Bar */}
+        <TextField
+          fullWidth
+          placeholder="Search for a reason to say no..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{
+            mb: { xs: 2, sm: 3 },
+            maxWidth: { xs: "100%", sm: 600 },
+            mx: "auto",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: { xs: 2, sm: 3 },
+            },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: searchQuery && (
+              <InputAdornment position="end">
+                <IconButton onClick={clearSearch} size="small">
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        {/* Category Filter Chips */}
+        <Box sx={{ mb: { xs: 3, sm: 4 } }}>
+          <Typography 
+            variant="subtitle2" 
+            sx={{ 
+              mb: { xs: 1.5, sm: 2 }, 
+              fontWeight: 600,
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            }}
+          >
+            Filter by Category:
           </Typography>
-          <Typography variant="body1" color="text.secondary" paragraph>
-            Get started by editing{" "}
-            <code style={{ background: "#f5f5f5", padding: "2px 6px", borderRadius: "4px" }}>
-              src/app/page.tsx
-            </code>
+          <Stack
+            direction="row"
+            spacing={{ xs: 0.5, sm: 1 }}
+            flexWrap="wrap"
+            justifyContent="center"
+            useFlexGap
+            sx={{ gap: { xs: 0.5, sm: 1 } }}
+          >
+            <Chip
+              label={`All (${reasonsData.total_reasons})`}
+              onClick={() => handleCategoryClick("All")}
+              color={selectedCategory === "All" ? "primary" : "default"}
+              variant={selectedCategory === "All" ? "filled" : "outlined"}
+              size="small"
+              sx={{ 
+                mb: { xs: 0.5, sm: 1 },
+                fontSize: { xs: "0.7rem", sm: "0.8125rem" },
+                height: { xs: 24, sm: 32 },
+              }}
+            />
+            {categories.map((category) => (
+              <Chip
+                key={category}
+                label={`${category} (${reasonsData.categories[category].count})`}
+                onClick={() => handleCategoryClick(category)}
+                color={selectedCategory === category ? "primary" : "default"}
+                variant={selectedCategory === category ? "filled" : "outlined"}
+                size="small"
+                sx={{ 
+                  mb: { xs: 0.5, sm: 1 },
+                  fontSize: { xs: "0.7rem", sm: "0.8125rem" },
+                  height: { xs: 24, sm: 32 },
+                  maxWidth: { xs: "100%", sm: "auto" },
+                }}
+              />
+            ))}
+          </Stack>
+        </Box>
+
+        {/* Results Count */}
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          sx={{ 
+            mb: { xs: 2, sm: 3 },
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+          }}
+        >
+          Showing {filteredReasons.length} reason{filteredReasons.length !== 1 ? "s" : ""}
+          {selectedCategory !== "All" && ` in ${selectedCategory}`}
+          {searchQuery && ` matching "${searchQuery}"`}
+        </Typography>
+      </Box>
+
+      {/* Reasons Grid */}
+      {filteredReasons.length > 0 ? (
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          {filteredReasons.map((reason, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  cursor: "pointer",
+                  "&:hover": {
+                    transform: { xs: "none", sm: "translateY(-4px)" },
+                    boxShadow: { xs: 2, sm: 4 },
+                  },
+                  "&:active": {
+                    transform: { xs: "scale(0.98)", sm: "translateY(-4px)" },
+                  },
+                }}
+                onClick={() => copyToClipboard(reason)}
+              >
+                <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2 } }}>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      lineHeight: 1.6,
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                    }}
+                  >
+                    {reason}
+                  </Typography>
+                </CardContent>
+                <CardActions sx={{ justifyContent: "flex-end", p: { xs: 0.5, sm: 1 } }}>
+                  <Tooltip title="Click card to copy">
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(reason);
+                      }}
+                      sx={{ color: "text.secondary" }}
+                    >
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Paper
+          sx={{
+            p: { xs: 3, sm: 4 },
+            textAlign: "center",
+            backgroundColor: "grey.50",
+          }}
+        >
+          <Typography 
+            variant="h6" 
+            color="text.secondary"
+            sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+          >
+            No reasons found
           </Typography>
-          <Button variant="contained" color="primary">
-            Get Started
-          </Button>
+          <Typography 
+            variant="body2" 
+            color="text.secondary" 
+            sx={{ 
+              mt: 1,
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            }}
+          >
+            Try adjusting your search or selecting a different category
+          </Typography>
         </Paper>
+      )}
+
+      {/* Snackbar for copy confirmation */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          Copied to clipboard!
+        </Alert>
+      </Snackbar>
+
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          mt: { xs: 6, sm: 8, md: 10 },
+          pt: { xs: 3, sm: 4 },
+          pb: { xs: 2, sm: 3 },
+          textAlign: "center",
+          borderTop: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            mb: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.5,
+            flexWrap: "wrap",
+          }}
+        >
+          Made with{" "}
+          <FavoriteIcon
+            sx={{
+              fontSize: { xs: "0.875rem", sm: "1rem" },
+              color: "error.main",
+              mx: 0.25,
+            }}
+          />{" "}
+          by{" "}
+          <Box
+            component="a"
+            href="https://github.com/leomofthings"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              color: "primary.main",
+              textDecoration: "none",
+              fontWeight: 600,
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+          >
+            @leomofthings
+          </Box>
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            fontSize: { xs: "0.7rem", sm: "0.8125rem" },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.5,
+            flexWrap: "wrap",
+          }}
+        >
+          Reasons from{" "}
+          <Box
+            component="a"
+            href="https://github.com/hotheadhacker/no-as-a-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              color: "primary.main",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.5,
+              "&:hover": {
+                textDecoration: "underline",
+              },
+            }}
+          >
+            <GitHubIcon sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }} />
+            no-as-a-service
+          </Box>
+        </Typography>
       </Box>
     </Container>
   );
 }
-
