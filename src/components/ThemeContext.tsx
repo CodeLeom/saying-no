@@ -30,12 +30,10 @@ export function ThemeContextProvider({
   const [mode, setMode] = useState<ThemeMode>("light");
 
   useEffect(() => {
-    // Load theme preference from localStorage
     const savedMode = localStorage.getItem("themeMode") as ThemeMode;
     if (savedMode === "light" || savedMode === "dark") {
       setMode(savedMode);
     } else {
-      // Check system preference
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       setMode(prefersDark ? "dark" : "light");
     }

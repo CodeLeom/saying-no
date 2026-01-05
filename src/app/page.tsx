@@ -33,19 +33,17 @@ type Category = keyof typeof reasonsData.categories;
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<Category | "All">("All");
-  const [copiedReason, setCopiedReason] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | "All">(
+    "All"
+  );
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const { mode, toggleTheme } = useThemeMode();
 
-  // Get all categories
   const categories = Object.keys(reasonsData.categories) as Category[];
 
-  // Filter reasons based on search and category
   const filteredReasons = useMemo(() => {
     let reasons: string[] = [];
 
-    // Get reasons from selected category or all categories
     if (selectedCategory === "All") {
       categories.forEach((category) => {
         reasons.push(...reasonsData.categories[category].reasons);
@@ -54,7 +52,6 @@ export default function Home() {
       reasons = reasonsData.categories[selectedCategory].reasons;
     }
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       reasons = reasons.filter((reason) =>
@@ -65,40 +62,33 @@ export default function Home() {
     return reasons;
   }, [searchQuery, selectedCategory, categories]);
 
-  const handleCategoryClick = (category: Category | "All") => {
-    setSelectedCategory(category);
-  };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-  };
-
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedReason(text);
       setSnackbarOpen(true);
     } catch (err) {
       console.error("Failed to copy text:", err);
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-    setCopiedReason(null);
-  };
-
   return (
-    <Container 
-      maxWidth="lg" 
-      sx={{ 
+    <Container
+      maxWidth="lg"
+      sx={{
         py: { xs: 2, sm: 3, md: 4 },
         px: { xs: 2, sm: 3, md: 4 },
       }}
     >
-      {/* Theme Toggle Button */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: { xs: 1, sm: 2 } }}>
-        <Tooltip title={`Switch to ${mode === "light" ? "dark" : "light"} mode`}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          mb: { xs: 1, sm: 2 },
+        }}
+      >
+        <Tooltip
+          title={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
+        >
           <IconButton
             onClick={toggleTheme}
             color="primary"
@@ -108,7 +98,11 @@ export default function Home() {
               borderColor: "divider",
             }}
           >
-            {mode === "light" ? <DarkModeIcon fontSize="small" /> : <LightModeIcon fontSize="small" />}
+            {mode === "light" ? (
+              <DarkModeIcon fontSize="small" />
+            ) : (
+              <LightModeIcon fontSize="small" />
+            )}
           </IconButton>
         </Tooltip>
       </Box>
@@ -118,18 +112,18 @@ export default function Home() {
           variant="h2"
           component="h1"
           gutterBottom
-          sx={{ 
-            fontWeight: 700, 
+          sx={{
+            fontWeight: 700,
             mb: { xs: 1, sm: 2 },
             fontSize: { xs: "1.75rem", sm: "2.5rem", md: "3rem" },
           }}
         >
           1000 Ways to Say No
         </Typography>
-        <Typography 
-          variant="body1" 
-          color="text.secondary" 
-          sx={{ 
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
             mb: { xs: 3, sm: 4 },
             fontSize: { xs: "0.875rem", sm: "1rem" },
             px: { xs: 1, sm: 0 },
@@ -138,7 +132,6 @@ export default function Home() {
           Find the perfect way to decline with style, humor, or honesty
         </Typography>
 
-        {/* Search Bar */}
         <TextField
           fullWidth
           placeholder="Search for a reason to say no..."
@@ -160,7 +153,7 @@ export default function Home() {
             ),
             endAdornment: searchQuery && (
               <InputAdornment position="end">
-                <IconButton onClick={clearSearch} size="small">
+                <IconButton onClick={() => setSearchQuery("")} size="small">
                   <ClearIcon />
                 </IconButton>
               </InputAdornment>
@@ -168,12 +161,11 @@ export default function Home() {
           }}
         />
 
-        {/* Category Filter Chips */}
         <Box sx={{ mb: { xs: 3, sm: 4 } }}>
-          <Typography 
-            variant="subtitle2" 
-            sx={{ 
-              mb: { xs: 1.5, sm: 2 }, 
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
               fontWeight: 600,
               fontSize: { xs: "0.75rem", sm: "0.875rem" },
             }}
@@ -190,11 +182,11 @@ export default function Home() {
           >
             <Chip
               label={`All (${reasonsData.total_reasons})`}
-              onClick={() => handleCategoryClick("All")}
+              onClick={() => setSelectedCategory("All")}
               color={selectedCategory === "All" ? "primary" : "default"}
               variant={selectedCategory === "All" ? "filled" : "outlined"}
               size="small"
-              sx={{ 
+              sx={{
                 mb: { xs: 0.5, sm: 1 },
                 fontSize: { xs: "0.7rem", sm: "0.8125rem" },
                 height: { xs: 24, sm: 32 },
@@ -204,11 +196,11 @@ export default function Home() {
               <Chip
                 key={category}
                 label={`${category} (${reasonsData.categories[category].count})`}
-                onClick={() => handleCategoryClick(category)}
+                onClick={() => setSelectedCategory(category)}
                 color={selectedCategory === category ? "primary" : "default"}
                 variant={selectedCategory === category ? "filled" : "outlined"}
                 size="small"
-                sx={{ 
+                sx={{
                   mb: { xs: 0.5, sm: 1 },
                   fontSize: { xs: "0.7rem", sm: "0.8125rem" },
                   height: { xs: 24, sm: 32 },
@@ -219,26 +211,25 @@ export default function Home() {
           </Stack>
         </Box>
 
-        {/* Results Count */}
-        <Typography 
-          variant="body2" 
-          color="text.secondary" 
-          sx={{ 
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
             mb: { xs: 2, sm: 3 },
             fontSize: { xs: "0.75rem", sm: "0.875rem" },
           }}
         >
-          Showing {filteredReasons.length} reason{filteredReasons.length !== 1 ? "s" : ""}
+          Showing {filteredReasons.length} reason
+          {filteredReasons.length !== 1 ? "s" : ""}
           {selectedCategory !== "All" && ` in ${selectedCategory}`}
           {searchQuery && ` matching "${searchQuery}"`}
         </Typography>
       </Box>
 
-      {/* Reasons Grid */}
       {filteredReasons.length > 0 ? (
         <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-          {filteredReasons.map((reason, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+          {filteredReasons.map((reason) => (
+            <Grid item xs={12} sm={6} md={4} key={reason}>
               <Card
                 sx={{
                   height: "100%",
@@ -257,9 +248,9 @@ export default function Home() {
                 onClick={() => copyToClipboard(reason)}
               >
                 <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2 } }}>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
+                  <Typography
+                    variant="body1"
+                    sx={{
                       lineHeight: 1.6,
                       fontSize: { xs: "0.875rem", sm: "1rem" },
                     }}
@@ -267,7 +258,9 @@ export default function Home() {
                     {reason}
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ justifyContent: "flex-end", p: { xs: 0.5, sm: 1 } }}>
+                <CardActions
+                  sx={{ justifyContent: "flex-end", p: { xs: 0.5, sm: 1 } }}
+                >
                   <Tooltip title="Click card to copy">
                     <IconButton
                       size="small"
@@ -293,17 +286,17 @@ export default function Home() {
             backgroundColor: "grey.50",
           }}
         >
-          <Typography 
-            variant="h6" 
+          <Typography
+            variant="h6"
             color="text.secondary"
             sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
           >
             No reasons found
           </Typography>
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            sx={{ 
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
               mt: 1,
               fontSize: { xs: "0.75rem", sm: "0.875rem" },
             }}
@@ -313,15 +306,14 @@ export default function Home() {
         </Paper>
       )}
 
-      {/* Snackbar for copy confirmation */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={2000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={handleCloseSnackbar}
+          onClose={() => setSnackbarOpen(false)}
           severity="success"
           sx={{ width: "100%" }}
         >
@@ -329,7 +321,6 @@ export default function Home() {
         </Alert>
       </Snackbar>
 
-      {/* Footer */}
       <Box
         component="footer"
         sx={{
@@ -365,7 +356,7 @@ export default function Home() {
           by{" "}
           <Box
             component="a"
-            href="https://github.com/leomofthings"
+            href="https://github.com/CodeLeom"
             target="_blank"
             rel="noopener noreferrer"
             sx={{
@@ -377,7 +368,7 @@ export default function Home() {
               },
             }}
           >
-            @leomofthings
+            @Leomofthings
           </Box>
         </Typography>
         <Typography
