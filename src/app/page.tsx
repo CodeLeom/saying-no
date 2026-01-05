@@ -96,13 +96,6 @@ export default function Home() {
       setRandomReason(selectedReason);
       setSearchQuery("");
       setSelectedCategory(randomCategory);
-      
-      setTimeout(() => {
-        const element = document.getElementById(`reason-${selectedReason}`);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 100);
     }
   };
 
@@ -167,85 +160,142 @@ export default function Home() {
           Find the perfect way to decline with style, humor, or honesty
         </Typography>
 
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={{ xs: 2, sm: 2 }}
+        <TextField
+          fullWidth
+          placeholder="Search for a reason to say no..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           sx={{
             mb: { xs: 2, sm: 3 },
-            maxWidth: { xs: "100%", sm: 800 },
+            maxWidth: { xs: "100%", sm: 600 },
             mx: "auto",
-            alignItems: { xs: "stretch", sm: "flex-end" },
+            "& .MuiOutlinedInput-root": {
+              borderRadius: { xs: 2, sm: 3 },
+            },
+          }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: searchQuery && (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setSearchQuery("")} size="small">
+                  <ClearIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{
+            mb: { xs: 2, sm: 3 },
+            maxWidth: { xs: "100%", sm: 600 },
+            mx: "auto",
+            alignItems: { xs: "stretch", sm: "center" },
+            justifyContent: "center",
           }}
         >
-          <TextField
-            fullWidth
-            placeholder="Search for a reason to say no..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+          <FormControl
+            size="small"
             sx={{
+              minWidth: { xs: "100%", sm: 200 },
               "& .MuiOutlinedInput-root": {
                 borderRadius: { xs: 2, sm: 3 },
               },
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: searchQuery && (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setSearchQuery("")} size="small">
-                    <ClearIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1}
-            sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 280 } }}
           >
-            <FormControl
-              size="small"
-              sx={{
-                minWidth: { xs: "100%", sm: 150 },
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: { xs: 2, sm: 3 },
-                },
-              }}
+            <InputLabel>Random from Category</InputLabel>
+            <Select
+              value={randomCategory}
+              label="Random from Category"
+              onChange={(e) =>
+                setRandomCategory(e.target.value as Category | "All")
+              }
             >
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={randomCategory}
-                label="Category"
-                onChange={(e) =>
-                  setRandomCategory(e.target.value as Category | "All")
-                }
-              >
-                <MenuItem value="All">All</MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button
-              variant="contained"
-              startIcon={<ShuffleIcon />}
-              onClick={getRandomReason}
-              sx={{
-                borderRadius: { xs: 2, sm: 3 },
-                px: { xs: 2, sm: 3 },
-                whiteSpace: "nowrap",
-              }}
-            >
-              Random
-            </Button>
-          </Stack>
+              <MenuItem value="All">All</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            startIcon={<ShuffleIcon />}
+            onClick={getRandomReason}
+            sx={{
+              borderRadius: { xs: 2, sm: 3 },
+              px: { xs: 2, sm: 3 },
+              whiteSpace: "nowrap",
+            }}
+          >
+            Get Random
+          </Button>
         </Stack>
+
+        {randomReason && (
+          <Box sx={{ mb: { xs: 3, sm: 4 }, maxWidth: 800, mx: "auto" }}>
+            <Card
+              sx={{
+                border: 2,
+                borderColor: "primary.main",
+                backgroundColor: mode === "light" 
+                  ? "rgba(25, 118, 210, 0.08)" 
+                  : "rgba(144, 202, 249, 0.16)",
+              }}
+            >
+              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    color="primary.main"
+                    sx={{ fontWeight: 600 }}
+                  >
+                    Random Selection
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => setRandomReason(null)}
+                    sx={{ mt: -1, mr: -1 }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    lineHeight: 1.6,
+                    fontSize: { xs: "0.875rem", sm: "1rem" },
+                    mb: 2,
+                  }}
+                >
+                  {randomReason}
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<ContentCopyIcon />}
+                  onClick={() => copyToClipboard(randomReason)}
+                  size="small"
+                >
+                  Copy
+                </Button>
+              </CardContent>
+            </Card>
+          </Box>
+        )}
 
         <Box sx={{ mb: { xs: 3, sm: 4 } }}>
           <Typography
@@ -317,18 +367,12 @@ export default function Home() {
           {filteredReasons.map((reason) => (
             <Grid item xs={12} sm={6} md={4} key={reason}>
               <Card
-                id={`reason-${reason}`}
                 sx={{
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
-                  transition: "transform 0.2s, box-shadow 0.2s, background-color 0.3s",
+                  transition: "transform 0.2s, box-shadow 0.2s",
                   cursor: "pointer",
-                  border: randomReason === reason ? 2 : 0,
-                  borderColor: randomReason === reason ? "primary.main" : "transparent",
-                  backgroundColor: randomReason === reason 
-                    ? (mode === "light" ? "rgba(25, 118, 210, 0.08)" : "rgba(144, 202, 249, 0.16)")
-                    : "background.paper",
                   "&:hover": {
                     transform: { xs: "none", sm: "translateY(-4px)" },
                     boxShadow: { xs: 2, sm: 4 },
@@ -337,10 +381,7 @@ export default function Home() {
                     transform: { xs: "scale(0.98)", sm: "translateY(-4px)" },
                   },
                 }}
-                onClick={() => {
-                  copyToClipboard(reason);
-                  setRandomReason(null);
-                }}
+                onClick={() => copyToClipboard(reason)}
               >
                 <CardContent sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2 } }}>
                   <Typography
